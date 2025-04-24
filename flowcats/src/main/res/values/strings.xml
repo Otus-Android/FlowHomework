@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Flow cats</string>
+    <string name="socket_timeout">Не удалось получить ответ от сервера</string>
+    <string name="unknown">Неизвестная ошибка</string>
 </resources>
