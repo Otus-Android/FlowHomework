@@ -7,11 +7,14 @@ class CatsRepository(
     private val catsService: CatsService,
     private val refreshIntervalMs: Long = 5000
 ) {
-
-    fun listenForCatFacts() = flow {
+    fun listenForCatFacts() = flow<Result<Fact>> {
         while (true) {
-            val latestNews = catsService.getCatFact()
-            emit(latestNews)
+            try {
+                val latestNews = catsService.getCatFact()
+                emit(Result.Success(latestNews))
+            } catch (e: Exception) {
+                emit(Result.Error(e))
+            }
             delay(refreshIntervalMs)
         }
     }
