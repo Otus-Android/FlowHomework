@@ -18,7 +18,7 @@ class SampleInteractor(
      * 6) возвращает результат
      */
     fun task1(): Flow<String> {
-        return flowOf()
+        return sampleRepository.produceNumbers().map { it*5 }.filter { it>20 }.filter { it%2!=0 }.map { "$it won" }.take(3)
     }
 
     /**
@@ -29,7 +29,28 @@ class SampleInteractor(
      * Если число не делится на 3,5,15 - эмитим само число
      */
     fun task2(): Flow<String> {
-        return flowOf()
+        return sampleRepository.produceNumbers()
+            .flatMapConcat {
+                flow {
+                    when {
+                        (it % 15 == 0) -> {
+                            emit(it.toString())
+                            emit("FizzBuzz")
+                        }
+                        (it % 5 == 0) -> {
+                            emit(it.toString())
+                            emit("Buzz")
+                        }
+                        (it % 3 == 0) -> {
+                            emit(it.toString())
+                            emit("Fizz")
+                        }
+                        else -> {
+                            emit(it.toString())
+                        }
+                    }
+                }
+            }
     }
 
     /**
@@ -38,7 +59,11 @@ class SampleInteractor(
      * Если айтемы в одно из флоу кончились то результирующий флоу также должен закончится
      */
     fun task3(): Flow<Pair<String, String>> {
-        return flowOf()
+        val a = sampleRepository.produceColors()
+        val b = sampleRepository.produceForms()
+        return a.zip(b) {
+                a,b -> Pair(a,b)
+        }
     }
 
     /**
@@ -48,6 +73,10 @@ class SampleInteractor(
      * При любом исходе, будь то выброс исключения или успешная отработка функции вызовите метод dotsRepository.completed()
      */
     fun task4(): Flow<Int> {
-        return flowOf()
+        return sampleRepository.produceNumbers().onStart({ sampleRepository.completed() }).catch { e ->
+            if (e is IllegalArgumentException) {
+                emit(-1)
+            } else throw e
+        }
     }
 }
