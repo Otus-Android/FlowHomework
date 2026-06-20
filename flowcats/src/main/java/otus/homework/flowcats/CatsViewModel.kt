@@ -24,8 +24,12 @@ class CatsViewModel(
     }
 }
 
-class CatsViewModelFactory(private val catsRepository: CatsRepository) :
-    ViewModelProvider.NewInstanceFactory() {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-        CatsViewModel(catsRepository) as T
+class CatsViewModelFactory(private val catsRepository: CatsRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        @Suppress("UNCHECKED_CAST")
+        if (modelClass.isAssignableFrom(CatsViewModel::class.java)) {
+            return CatsViewModel(catsRepository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
 }
