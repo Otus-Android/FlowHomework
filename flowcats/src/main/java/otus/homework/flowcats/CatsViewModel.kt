@@ -12,14 +12,18 @@ class CatsViewModel(
     private val catsRepository: CatsRepository
 ) : ViewModel() {
 
-    private val _catsState = MutableStateFlow<Fact?>(null)
-    val catsState =_catsState.asStateFlow()
+    private val _catsState = MutableStateFlow<Result<PresentationFact>?>(null)
+    val catsState = _catsState.asStateFlow()
 
     init {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                catsRepository.listenForCatFacts().collect {
-                    _catsState.value = it
+                try {
+                    catsRepository.listenForCatFacts().collect { data ->
+                        _catsState.value = Result.Success(PresentationFact(data.text))
+                    }
+                } catch (e: Exception) {
+                    _catsState.value = Result.Error(e.message ?: "Неизвестная ошибка сети")
                 }
             }
         }
