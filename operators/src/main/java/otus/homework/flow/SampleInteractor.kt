@@ -2,6 +2,7 @@ package otus.homework.flow
 
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.flatMapConcat
 
 @ExperimentalCoroutinesApi
 class SampleInteractor(
@@ -18,7 +19,11 @@ class SampleInteractor(
      * 6) возвращает результат
      */
     fun task1(): Flow<String> {
-        return flowOf()
+        return sampleRepository.produceNumbers()
+            .map { it * 5 }
+            .filter { it > 20 && it % 2 == 1 }
+            .map { "$it won" }
+            .take(3)
     }
 
     /**
@@ -29,7 +34,14 @@ class SampleInteractor(
      * Если число не делится на 3,5,15 - эмитим само число
      */
     fun task2(): Flow<String> {
-        return flowOf()
+        return sampleRepository.produceNumbers().flatMapConcat {
+            when {
+                it % 15 == 0 -> flowOf(it.toString(), "FizzBuzz")
+                it % 3 == 0 -> flowOf(it.toString(), "Fizz")
+                it % 5 == 0 -> flowOf(it.toString(), "Buzz")
+                else -> flowOf(it.toString())
+            }
+        }
     }
 
     /**
@@ -37,9 +49,8 @@ class SampleInteractor(
      * где f1 айтем из первого флоу, f2 айтем из второго флоу.
      * Если айтемы в одно из флоу кончились то результирующий флоу также должен закончится
      */
-    fun task3(): Flow<Pair<String, String>> {
-        return flowOf()
-    }
+    fun task3(): Flow<Pair<String, String>> =
+        sampleRepository.produceColors().zip(sampleRepository.produceForms(), ::Pair)
 
     /**
      * Реализайте функцию task4, которая обрабатывает IllegalArgumentException и в качестве фоллбека
@@ -48,6 +59,13 @@ class SampleInteractor(
      * При любом исходе, будь то выброс исключения или успешная отработка функции вызовите метод dotsRepository.completed()
      */
     fun task4(): Flow<Int> {
-        return flowOf()
+        return sampleRepository
+            .produceNumbers()
+            .catch {
+                if (it is IllegalArgumentException)
+                    emit(-1)
+                else throw it
+            }
+            .onCompletion { sampleRepository.completed() }
     }
 }
